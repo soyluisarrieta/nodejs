@@ -6,8 +6,22 @@
   <title>Uazah - Nodejs + Socket.io</title>
   <script type="module">
     import { io } from 'https://cdn.socket.io/4.3.2/socket.io.esm.min.js'
+
     const socket = io()
+
+    const form = document.getElementById('form')
+    const input = document.getElementById('message')
+
+    form.addEventListener('submit', (e)=>{
+      e.preventDefault()
+
+      if(input.value) {
+        socket.emit('chat message', input.value)
+        input.value = ''
+      }
+    })
   </script>
+
   <style>
     * {
       padding: 0;
@@ -59,6 +73,7 @@
         width: 100%;
         padding: 0.4rem;
         border-radius: 0.3rem;
+        font-size: 1rem;
         border: none;
       }
 
@@ -66,6 +81,7 @@
         padding-inline: 1rem;
         background-color: cornflowerblue;
         border: none;
+        font-size: 1rem;
         border-radius: 0.3rem;
       }
     }
@@ -75,7 +91,7 @@
   <section id="chat">
     <h1>Uazah</h1>
     <div class="historical"></div>
-    <form>
+    <form id="form">
       <input id="message" name="message" placeholder="Ingresa un mensaje" />
       <button>Enviar</button>
     </form>

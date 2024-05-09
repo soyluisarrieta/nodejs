@@ -11,8 +11,14 @@
 
     const form = document.getElementById('form')
     const input = document.getElementById('message')
+    const messages = document.getElementById('messages')
 
-    form.addEventListener('submit', (e)=>{
+    socket.on('chat message', (msg) => {
+      const item = `<li>${msg}</li>`
+      messages.insertAdjacentHTML('beforeend', item)
+    })
+
+    form.addEventListener('submit', (e) => {
       e.preventDefault()
 
       if(input.value) {
@@ -55,13 +61,14 @@
         margin-bottom: 1rem;
       }
 
-      & .historical {
+      & #messages {
         width: 100%;
         padding: 1rem;
         flex: 1;
         margin-bottom: 1rem;
         background-color: #111;
         border-radius: 0.5rem;
+        list-style: none;
       }
 
       & form {
@@ -90,7 +97,7 @@
 <body>
   <section id="chat">
     <h1>Uazah</h1>
-    <div class="historical"></div>
+    <ul id="messages"></ul>
     <form id="form">
       <input id="message" name="message" placeholder="Ingresa un mensaje" />
       <button>Enviar</button>

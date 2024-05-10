@@ -1,16 +1,17 @@
 {
   "name": "chat-using-socketio",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "main.js",
   "type": "module",
   "scripts": {
+    "start": "electron .",
     "dev": "node --watch ./server/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
+  "author": "soyluisarrieta",
+  "license": "MIT",
+  "description": "Chat in realtime, this is my first app using nodejs and socket.io",
   "dependencies": {
     "express": "4.19.2",
     "morgan": "1.10.0",

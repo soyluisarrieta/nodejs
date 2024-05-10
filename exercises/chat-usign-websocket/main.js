@@ -51,7 +51,7 @@ app.whenReady().then(() => {
 
   // Servir la página principal del chat en la ruta raíz "/"
   server.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'client', 'index.html'));
+      res.sendFile(path.join(__dirname, 'client', 'index.html'));
   });
 
   // Servir archivos estáticos desde el directorio "public"
@@ -59,48 +59,52 @@ app.whenReady().then(() => {
 
   // Buscar un puerto disponible entre 3000 y 4000
   findAvailablePort(3000, 4000, (err, port) => {
-    if (err) {
-      console.error('Error finding available port:', err);
-      return;
-    }
+      if (err) {
+          console.error('Error finding available port:', err);
+          return;
+      }
 
-    // Configurar directorio de caché personalizado para Electron
-    app.commandLine.appendSwitch('disk-cache-dir', path.join(app.getPath('userData'), 'cache'));
+      // Configurar directorio de caché personalizado para Electron
+      app.commandLine.appendSwitch('disk-cache-dir', path.join(app.getPath('userData'), 'cache'));
 
-    // Iniciar el servidor en el puerto disponible
-    const expressServer = server.listen(port, '0.0.0.0', () => {
-      console.log('Server running on http://' + getLocalIpAddress() + ':' + port);
-    });
-
-    const wss = new WebSocket.Server({ server: expressServer });
-
-    const messages = []; // Almacena temporalmente los mensajes enviados
-
-    wss.on('connection', function connection(ws) {
-      // Enviar todos los mensajes almacenados temporalmente al cliente recién conectado
-      messages.forEach(function (message) {
-        ws.send(message);
+      // Iniciar el servidor en el puerto disponible
+      const expressServer = server.listen(port, '0.0.0.0', () => {
+          console.log('Server running on http://' + getLocalIpAddress() + ':' + port);
       });
 
-      ws.on('message', function incoming(message) {
-        const parsedMessage = message.toString();
-        wss.clients.forEach(function each(client) {
-          if (client !== ws && client.readyState === WebSocket.OPEN) {
-            client.send(parsedMessage);
-          }
-        });
+      const wss = new WebSocket.Server({ server: expressServer });
 
-        // Almacenar temporalmente el mensaje enviado
-        messages.push(parsedMessage);
+      const messages = []; // Almacena temporalmente los mensajes enviados
+
+      wss.on('connection', function connection(ws) {
+          // Enviar todos los mensajes almacenados temporalmente al cliente recién conectado
+          messages.forEach(function (message) {
+              ws.send(message);
+          });
+
+          ws.on('message', function incoming(message) {
+              const parsedMessage = message.toString();
+              wss.clients.forEach(function each(client) {
+                  if (client !== ws && client.readyState === WebSocket.OPEN) {
+                      client.send(parsedMessage);
+                  }
+              });
+
+              // Almacenar temporalmente el mensaje enviado
+              messages.push(parsedMessage);
+          });
+
+          // Limpiar los mensajes almacenados temporalmente después de enviarlos al cliente
+          ws.on('close', function () {
+              messages.length = 0; // Vaciar el array de mensajes
+          });
       });
-    });
 
+      createWindow(port);
 
-    createWindow(port);
-
-    app.on('activate', function () {
-      if (BrowserWindow.getAllWindows().length === 0) createWindow(port);
-    });
+      app.on('activate', function () {
+          if (BrowserWindow.getAllWindows().length === 0) createWindow(port);
+      });
   });
 });
 

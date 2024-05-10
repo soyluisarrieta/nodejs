@@ -12,7 +12,7 @@
     <button onclick="resetConversation()">Reset Conversation</button>
 
     <script>
-        const socket = new WebSocket('ws://' + window.location.hostname + ':3000');
+        const socket = new WebSocket('ws://' + window.location.hostname + ':'+ window.location.port);
         const messagesDiv = document.getElementById('messages');
         const messageInput = document.getElementById('messageInput');
 

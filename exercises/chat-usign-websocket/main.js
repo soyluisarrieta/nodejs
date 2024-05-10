@@ -74,7 +74,14 @@ app.whenReady().then(() => {
 
     const wss = new WebSocket.Server({ server: expressServer });
 
+    const messages = []; // Almacena temporalmente los mensajes enviados
+
     wss.on('connection', function connection(ws) {
+      // Enviar todos los mensajes almacenados temporalmente al cliente recién conectado
+      messages.forEach(function (message) {
+        ws.send(message);
+      });
+
       ws.on('message', function incoming(message) {
         const parsedMessage = message.toString();
         wss.clients.forEach(function each(client) {
@@ -82,8 +89,12 @@ app.whenReady().then(() => {
             client.send(parsedMessage);
           }
         });
+
+        // Almacenar temporalmente el mensaje enviado
+        messages.push(parsedMessage);
       });
     });
+
 
     createWindow(port);
 

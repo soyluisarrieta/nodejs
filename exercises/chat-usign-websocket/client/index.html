@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat App</title>
+</head>
+<body>
+    <div id="messages"></div>
+    <input type="text" id="messageInput" placeholder="Type your message...">
+    <button onclick="sendMessage()">Send</button>
+    <button onclick="resetConversation()">Reset Conversation</button>
+
+    <script>
+        const socket = new WebSocket('ws://' + window.location.hostname + ':3000');
+        const messagesDiv = document.getElementById('messages');
+        const messageInput = document.getElementById('messageInput');
+
+        // Función para mostrar los mensajes guardados en el almacenamiento local al cargar la página
+        window.onload = function() {
+            const savedMessages = JSON.parse(localStorage.getItem('chatMessages')) || [];
+            savedMessages.forEach(function(message) {
+                const messageNode = document.createElement('p');
+                messageNode.innerHTML = message;
+                messagesDiv.appendChild(messageNode);
+            });
+        };
+
+        socket.onmessage = function(event) {
+            const message = event.data;
+            const messageNode = document.createElement('p');
+            messageNode.innerHTML = message;
+            messagesDiv.appendChild(messageNode);
+            saveMessage(messageNode.outerHTML);
+        };
+
+        function sendMessage() {
+            const message = messageInput.value;
+            const messageNode = document.createElement('p');
+            messageNode.innerHTML = '<span style="color: blue;">' + message + '</span>';
+            messagesDiv.appendChild(messageNode);
+            socket.send(message);
+            saveMessage(messageNode.outerHTML);
+            messageInput.value = '';
+        }
+
+        function saveMessage(messageHTML) {
+            const savedMessages = JSON.parse(localStorage.getItem('chatMessages')) || [];
+            savedMessages.push(messageHTML);
+            localStorage.setItem('chatMessages', JSON.stringify(savedMessages));
+        }
+
+        function resetConversation() {
+            messagesDiv.innerHTML = '';
+            localStorage.removeItem('chatMessages');
+        }
+    </script>
+</body>
+</html>

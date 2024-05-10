@@ -12,11 +12,12 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "express": "^4.19.2",
-    "ws": "^8.17.0"
+    "express": "4.19.2",
+    "sqlite3": "5.1.7",
+    "ws": "8.17.0"
   },
   "devDependencies": {
-    "electron": "^30.0.3",
-    "electron-builder": "^24.13.3"
+    "electron": "30.0.3",
+    "electron-builder": "24.13.3"
   }
 }

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat App</title>
+</head>
+<body>
+    <div id="messages"></div>
+    <input type="text" id="messageInput" placeholder="Type your message...">
+    <button onclick="sendMessage()">Send</button>
+    <button onclick="resetConversation()">Reset Conversation</button>
+
+    <script>
+        const socket = new WebSocket('ws://' + window.location.hostname + ':'+ window.location.port);
+        const messagesDiv = document.getElementById('messages');
+        const messageInput = document.getElementById('messageInput');
+
+        socket.onmessage = function(event) {
+            const message = event.data;
+            const messageNode = document.createElement('p');
+            messageNode.innerHTML = message;
+            messagesDiv.appendChild(messageNode);
+        };
+
+        function sendMessage() {
+            const message = messageInput.value;
+            const messageNode = document.createElement('p');
+            messageNode.innerHTML = '<span style="color: blue;">' + message + '</span>';
+            messagesDiv.appendChild(messageNode);
+            socket.send(JSON.stringify({message}));
+            messageInput.value = '';
+        }
+
+        function resetConversation() {
+            messagesDiv.innerHTML = '';
+        }
+    </script>
+</body>
+</html>

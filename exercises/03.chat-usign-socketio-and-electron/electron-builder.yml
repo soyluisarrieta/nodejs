@@ -1,0 +1,14 @@
+appId: com.example.myapp
+productName: ChatWebsocket
+directories:
+  output: dist
+win:
+  target: nsis
+  icon: build/icon.ico
+  artifactName: ChatWebsocket_Setup_${version}.${ext}
+nsis:
+  oneClick: false
+  perMachine: true
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true

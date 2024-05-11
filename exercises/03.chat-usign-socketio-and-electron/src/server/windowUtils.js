@@ -25,9 +25,17 @@ function createWindow(port) {
   mainWindow.loadURL('http://' + getLocalIpAddress() + ':' + port);
 
   // Window buttons
-  ipcMain.on('closeApp', () => mainWindow.close())
-  ipcMain.on('minimizeApp', () => mainWindow.minimize())
-  ipcMain.on('maxResApp', () => mainWindow.maximize())
+  ipcMain.on('closeApp', () => { mainWindow.close() })
+  ipcMain.on('minimizeApp', () => { mainWindow.minimize() })
+  ipcMain.on('maximizeRestoreApp', () => { 
+    if(mainWindow.isMaximized()) { 
+      mainWindow.restore()
+      mainWindow.webContents.send('isRestored')
+    } else { 
+      mainWindow.maximize() 
+      mainWindow.webContents.send('isMaximized') 
+    }
+  })
 }
 
 module.exports = { createWindow };

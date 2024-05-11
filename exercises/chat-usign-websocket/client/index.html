@@ -16,22 +16,11 @@
         const messagesDiv = document.getElementById('messages');
         const messageInput = document.getElementById('messageInput');
 
-        // Función para mostrar los mensajes guardados en el almacenamiento local al cargar la página
-        window.onload = function() {
-            const savedMessages = JSON.parse(localStorage.getItem('chatMessages')) || [];
-            savedMessages.forEach(function(message) {
-                const messageNode = document.createElement('p');
-                messageNode.innerHTML = message;
-                messagesDiv.appendChild(messageNode);
-            });
-        };
-
         socket.onmessage = function(event) {
             const message = event.data;
             const messageNode = document.createElement('p');
             messageNode.innerHTML = message;
             messagesDiv.appendChild(messageNode);
-            saveMessage(messageNode.outerHTML);
         };
 
         function sendMessage() {
@@ -40,19 +29,11 @@
             messageNode.innerHTML = '<span style="color: blue;">' + message + '</span>';
             messagesDiv.appendChild(messageNode);
             socket.send(JSON.stringify({message}));
-            saveMessage(messageNode.outerHTML);
             messageInput.value = '';
-        }
-
-        function saveMessage(messageHTML) {
-            const savedMessages = JSON.parse(localStorage.getItem('chatMessages')) || [];
-            savedMessages.push(messageHTML);
-            localStorage.setItem('chatMessages', JSON.stringify(savedMessages));
         }
 
         function resetConversation() {
             messagesDiv.innerHTML = '';
-            localStorage.removeItem('chatMessages');
         }
     </script>
 </body>

@@ -1,11 +1,14 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat App</title>
+
+    <link rel="stylesheet" href="style.css">
+    
     <!-- Importar el módulo de Socket.IO -->
-    <script type="module">
+    <script defer type="module">
         import { io } from './socket.io.esm.min.js'
         // Inicializar Socket.IO
         const socket = io();
@@ -47,12 +50,31 @@
         function resetConversation() {
             messagesDiv.innerHTML = '';
         }
+
+        document.getElementById
     </script>
+
+    <script defer src="script.js"></script>
 </head>
 <body>
-    <div id="messages"></div>
-    <input type="text" id="messageInput" placeholder="Type your message...">
-    <button id="sendButton">Send</button>
-    <button id="resetButton">Reset Conversation</button>
+  <div id="root">
+    <header id="titleBar">
+      <div id="titleBar-drag">Aplicación</div>
+      <div id="titleBar-buttons">
+        <button id="minimizeBtn">-</button>
+        <button id="maxResBtn">O</button>
+        <button id="closeBtn">X</button>
+      </div>
+    </header>
+    <main>
+      <div id="messages"></div>
+      <input type="text" id="messageInput" placeholder="Type your message...">
+      <button id="sendButton">Send</button>
+      <button id="resetButton">Reset Conversation</button>
+    </main>
+    <footer>
+      © SoyLuisArrieta - 2024
+    </footer>
+  </div>
 </body>
 </html>

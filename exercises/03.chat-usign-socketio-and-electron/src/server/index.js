@@ -19,8 +19,8 @@ function createServer() {
   // Servir archivos estáticos desde el directorio "client"
   server.use(express.static(path.join(__dirname,'..' , 'client')));
 
-  // Encontrar un puerto disponible entre 3000 y 4000
-  findAvailablePort(3000, 4000, (err, port) => {
+  // Encontrar y usar un puerto disponible
+  findAvailablePort((err, port) => {
     if (err) {
       console.error('Error finding available port:', err);
       return;
@@ -36,15 +36,25 @@ function createServer() {
 
     // Inicializar Socket.IO y asociarlo al servidor HTTP
     const io = socketio(expressServer);
-
+    
     // Manejar conexiones de Socket.IO
     io.on('connection', socket => {
-      getAllMessages().forEach(data => {
-        socket.emit('chat message', data.message);
+      console.log('An user has connected - Total user:',socket.server.engine.clientsCount);
+
+      socket.on('disconnect',()=>{
+        console.log('An user has disconnected - Total user:',socket.server.engine.clientsCount);
       });
-      socket.on('chat message', message => {
+
+      // Enviar historial de mensajes al cliente
+      getAllMessages(port)
+        .forEach(data => {
+          socket.emit('chat message', data.message);
+        });
+
+      // Enviar nuevo mensaje a todos los usuarios
+      socket.on('chat message', (message) => {
         socket.broadcast.emit('chat message', message);
-        saveMessage(message);
+        saveMessage(message, port);
       });
     });
 

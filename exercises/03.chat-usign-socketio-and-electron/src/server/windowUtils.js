@@ -14,6 +14,9 @@ function createWindow(port) {
       partition: `persist:${port}`
     }
   });
+
+  // Quita el menú
+  mainWindow.setMenu(null);
   
   // Cargar la URL del servidor en la nueva ventana
   mainWindow.loadURL('http://' + getLocalIpAddress() + ':' + port);

@@ -4,28 +4,46 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat App</title>
+    <!-- Importar el módulo de Socket.IO -->
     <script type="module">
         import { io } from './socket.io.esm.min.js'
+        // Inicializar Socket.IO
         const socket = io();
+        // Obtener referencias a elementos del DOM
         const messagesDiv = document.getElementById('messages');
         const messageInput = document.getElementById('messageInput');
         const sendButton = document.getElementById('sendButton');
         const resetButton = document.getElementById('resetButton');
+        
+        // Manejar eventos de Socket.IO para recibir mensajes
         socket.on('chat message', message => {
+            // Crear un nodo de mensaje para mostrar en la interfaz
             const messageNode = document.createElement('p');
             messageNode.textContent = message;
             messagesDiv.appendChild(messageNode);
         });
+        
+        // Agregar un event listener al botón de enviar mensaje
         sendButton.addEventListener('click', sendMessage);
+        // Agregar un event listener al botón de reiniciar conversación
         resetButton.addEventListener('click', resetConversation);
+        
+        // Función para enviar un mensaje
         function sendMessage() {
+            // Obtener el mensaje del input de texto
             const message = messageInput.value;
+            // Crear un nodo de mensaje para mostrar en la interfaz
             const messageNode = document.createElement('p');
+            // Estilizar el mensaje en azul
             messageNode.innerHTML = '<span style="color: blue;">' + message + '</span>';
             messagesDiv.appendChild(messageNode);
+            // Enviar el mensaje a través de Socket.IO
             socket.emit('chat message', message);
+            // Limpiar el input de texto después de enviar el mensaje
             messageInput.value = '';
         }
+        
+        // Función para reiniciar la conversación (borrar todos los mensajes)
         function resetConversation() {
             messagesDiv.innerHTML = '';
         }

@@ -1,41 +1,55 @@
 const { app, BrowserWindow } = require('electron');
 const express = require('express');
-const WebSocket = require('ws');
+const http = require('http');
+const socketio = require('socket.io');
 const path = require('path');
 const os = require('os');
-const sqlite3 = require('sqlite3').verbose();
+const fs = require('fs');
 
-const dbPath = path.join(__dirname, 'messages.db'); // Ruta absoluta para la base de datos
+// Obtener el directorio de datos de la aplicación
+const userDataPath = app.getPath('userData');
+const messagesFilePath = path.join(userDataPath, 'messages.json');
 
-// Conexión a la base de datos SQLite
-const db = new sqlite3.Database(dbPath);
-
-// Crear tabla para almacenar mensajes si no existe
-db.serialize(() => {
-  db.run("CREATE TABLE IF NOT EXISTS messages (id INTEGER PRIMARY KEY, message TEXT)");
-});
-
-// Almacenar mensaje en la base de datos
+// Función para guardar un mensaje en el archivo JSON
 function saveMessage(message) {
-  db.run("INSERT INTO messages (message) VALUES (?)", [message], (err) => {
-    if (err) {
-      console.error('Error saving message:', err);
+  let messages = [];
+  try {
+    // Intenta leer los mensajes existentes del archivo JSON
+    const data = fs.readFileSync(messagesFilePath, 'utf8');
+    messages = JSON.parse(data);
+  } catch (err) {
+    // Si el archivo no existe, lo crea
+    if (err.code === 'ENOENT') {
+      fs.writeFileSync(messagesFilePath, '[]', 'utf8');
+    } else {
+      // Si hay otro error al leer el archivo, mostrarlo en la consola
+      console.error('Error reading messages file:', err);
     }
-  });
+  }
+
+  // Agregar el nuevo mensaje al array de mensajes
+  messages.push({ id: messages.length + 1, message });
+
+  // Escribir los mensajes actualizados en el archivo JSON
+  fs.writeFileSync(messagesFilePath, JSON.stringify(messages, null, 2), 'utf8');
 }
 
-// Obtener todos los mensajes almacenados en la base de datos
-function getAllMessages(callback) {
-  db.all("SELECT * FROM messages", [], (err, rows) => {
-    if (err) {
-      console.error('Error getting messages:', err);
-      callback([]);
-    } else {
-      // Mapear los objetos de mensaje a sus textos respectivos
-      const messages = rows.map(row => row.message);
-      callback(messages);
-    }
-  });
+// Función para obtener todos los mensajes del archivo JSON
+function getAllMessages() {
+  try {
+    // Intenta leer los mensajes del archivo JSON
+    const data = fs.readFileSync(messagesFilePath, 'utf8');
+    return JSON.parse(data);
+  } catch (err) {
+    // Si el archivo no existe o hay un error al leerlo, retornar un array vacío
+    console.error('Error reading messages file:', err);
+    return [];
+  }
+}
+
+// Crear el archivo JSON si no existe
+if (!fs.existsSync(messagesFilePath)) {
+  fs.writeFileSync(messagesFilePath, '[]', 'utf8');
 }
 
 function getLocalIpAddress() {
@@ -88,8 +102,8 @@ app.whenReady().then(() => {
     res.sendFile(path.join(__dirname, 'client', 'index.html'));
   });
 
-  // Servir archivos estáticos desde el directorio "public"
-  server.use(express.static(path.join(__dirname, 'public')));
+  // Servir archivos estáticos desde el directorio "client"
+  server.use(express.static(path.join(__dirname, 'client')));
 
   // Buscar un puerto disponible entre 3000 y 4000
   findAvailablePort(3000, 4000, (err, port) => {
@@ -101,30 +115,28 @@ app.whenReady().then(() => {
     // Configurar directorio de caché personalizado para Electron
     app.commandLine.appendSwitch('disk-cache-dir', path.join(app.getPath('userData'), 'cache'));
 
-    // Iniciar el servidor en el puerto disponible
-    const expressServer = server.listen(port, '0.0.0.0', () => {
+    // Crear el servidor HTTP
+    const httpServer = http.createServer(server);
+
+    // Iniciar el servidor HTTP en el puerto disponible
+    const expressServer = httpServer.listen(port, '0.0.0.0', () => {
       console.log('Server running on http://' + getLocalIpAddress() + ':' + port);
     });
 
-    const wss = new WebSocket.Server({ server: expressServer });
+    // Inicializar Socket.IO y asociarlo al servidor HTTP
+    const io = socketio(expressServer);
 
-    wss.on('connection', function connection(ws) {
-      getAllMessages(messages => {
-        messages.forEach(message => {
-          ws.send(message); // Enviar el texto del mensaje en lugar del objeto completo
-        });
+    io.on('connection', (socket) => {
+      const messages = getAllMessages();
+      messages.forEach(message => {
+        socket.emit('message', message.message); // Emitir el texto del mensaje en lugar del objeto completo
       });
 
       // Manejar mensajes entrantes desde el cliente
-      ws.on('message', function incoming(data) {
-        const parsedData = JSON.parse(data.toString())
+      socket.on('message', (data) => {
+        const parsedData = JSON.parse(data);
         const message = parsedData.message;
-        wss.clients.forEach(function each(client) {
-          if (client !== ws && client.readyState === WebSocket.OPEN) {
-            client.send(message);
-          }
-        });
-
+        socket.broadcast.emit('message', message);
         saveMessage(message);
       });
     });

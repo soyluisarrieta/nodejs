@@ -4,31 +4,37 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat App</title>
-</head>
-<body>
-    <div id="messages"></div>
-    <input type="text" id="messageInput" placeholder="Type your message...">
-    <button onclick="sendMessage()">Send</button>
-    <button onclick="resetConversation()">Reset Conversation</button>
 
-    <script>
-        const socket = new WebSocket('ws://' + window.location.hostname + ':'+ window.location.port);
+    <script type="module">
+        import { io } from './socket.io.esm.min.js'
+
+        const socket = io(); // Inicializar Socket.IO
+
         const messagesDiv = document.getElementById('messages');
         const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+        const resetButton = document.getElementById('resetButton');
 
-        socket.onmessage = function(event) {
-            const message = event.data;
+        socket.on('message', function(message) {
             const messageNode = document.createElement('p');
             messageNode.innerHTML = message;
             messagesDiv.appendChild(messageNode);
-        };
+        });
+
+        sendButton.addEventListener('click', function() {
+            sendMessage();
+        });
+
+        resetButton.addEventListener('click', function() {
+            resetConversation();
+        });
 
         function sendMessage() {
             const message = messageInput.value;
             const messageNode = document.createElement('p');
             messageNode.innerHTML = '<span style="color: blue;">' + message + '</span>';
             messagesDiv.appendChild(messageNode);
-            socket.send(JSON.stringify({message}));
+            socket.emit('message', JSON.stringify({message}));
             messageInput.value = '';
         }
 
@@ -36,5 +42,11 @@
             messagesDiv.innerHTML = '';
         }
     </script>
+</head>
+<body>
+    <div id="messages"></div>
+    <input type="text" id="messageInput" placeholder="Type your message...">
+    <button id="sendButton">Send</button>
+    <button id="resetButton">Reset Conversation</button>
 </body>
 </html>

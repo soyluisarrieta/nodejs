@@ -4,40 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat App</title>
-
     <script type="module">
         import { io } from './socket.io.esm.min.js'
-
-        const socket = io(); // Inicializar Socket.IO
-
+        const socket = io();
         const messagesDiv = document.getElementById('messages');
         const messageInput = document.getElementById('messageInput');
         const sendButton = document.getElementById('sendButton');
         const resetButton = document.getElementById('resetButton');
-
-        socket.on('message', function(message) {
+        socket.on('message', message => {
             const messageNode = document.createElement('p');
-            messageNode.innerHTML = message;
+            messageNode.textContent = message;
             messagesDiv.appendChild(messageNode);
         });
-
-        sendButton.addEventListener('click', function() {
-            sendMessage();
-        });
-
-        resetButton.addEventListener('click', function() {
-            resetConversation();
-        });
-
+        sendButton.addEventListener('click', sendMessage);
+        resetButton.addEventListener('click', resetConversation);
         function sendMessage() {
             const message = messageInput.value;
             const messageNode = document.createElement('p');
             messageNode.innerHTML = '<span style="color: blue;">' + message + '</span>';
             messagesDiv.appendChild(messageNode);
-            socket.emit('message', JSON.stringify({message}));
+            socket.emit('message', JSON.stringify({ message }));
             messageInput.value = '';
         }
-
         function resetConversation() {
             messagesDiv.innerHTML = '';
         }

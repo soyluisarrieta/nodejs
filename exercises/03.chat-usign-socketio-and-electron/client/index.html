@@ -11,7 +11,7 @@
         const messageInput = document.getElementById('messageInput');
         const sendButton = document.getElementById('sendButton');
         const resetButton = document.getElementById('resetButton');
-        socket.on('message', message => {
+        socket.on('chat message', message => {
             const messageNode = document.createElement('p');
             messageNode.textContent = message;
             messagesDiv.appendChild(messageNode);
@@ -23,7 +23,7 @@
             const messageNode = document.createElement('p');
             messageNode.innerHTML = '<span style="color: blue;">' + message + '</span>';
             messagesDiv.appendChild(messageNode);
-            socket.emit('message', JSON.stringify({ message }));
+            socket.emit('chat message', message);
             messageInput.value = '';
         }
         function resetConversation() {

@@ -86,13 +86,11 @@ app.whenReady().then(() => {
     });
     const io = socketio(expressServer);
     io.on('connection', socket => {
-      getAllMessages().forEach(message => {
-        socket.emit('message', message.message);
+      getAllMessages().forEach(data => {
+        socket.emit('chat message', data.message);
       });
-      socket.on('message', data => {
-        const parsedData = JSON.parse(data);
-        const message = parsedData.message;
-        socket.broadcast.emit('message', message);
+      socket.on('chat message', message => {
+        socket.broadcast.emit('chat message', message);
         saveMessage(message);
       });
     });

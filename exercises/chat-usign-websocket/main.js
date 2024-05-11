@@ -3,6 +3,40 @@ const express = require('express');
 const WebSocket = require('ws');
 const path = require('path');
 const os = require('os');
+const sqlite3 = require('sqlite3').verbose();
+
+const dbPath = path.join(__dirname, 'messages.db'); // Ruta absoluta para la base de datos
+
+// Conexión a la base de datos SQLite
+const db = new sqlite3.Database(dbPath);
+
+// Crear tabla para almacenar mensajes si no existe
+db.serialize(() => {
+  db.run("CREATE TABLE IF NOT EXISTS messages (id INTEGER PRIMARY KEY, message TEXT)");
+});
+
+// Almacenar mensaje en la base de datos
+function saveMessage(message) {
+  db.run("INSERT INTO messages (message) VALUES (?)", [message], (err) => {
+    if (err) {
+      console.error('Error saving message:', err);
+    }
+  });
+}
+
+// Obtener todos los mensajes almacenados en la base de datos
+function getAllMessages(callback) {
+  db.all("SELECT * FROM messages", [], (err, rows) => {
+    if (err) {
+      console.error('Error getting messages:', err);
+      callback([]);
+    } else {
+      // Mapear los objetos de mensaje a sus textos respectivos
+      const messages = rows.map(row => row.message);
+      callback(messages);
+    }
+  });
+}
 
 function getLocalIpAddress() {
   const ifaces = os.networkInterfaces();
@@ -51,7 +85,7 @@ app.whenReady().then(() => {
 
   // Servir la página principal del chat en la ruta raíz "/"
   server.get('/', (req, res) => {
-      res.sendFile(path.join(__dirname, 'client', 'index.html'));
+    res.sendFile(path.join(__dirname, 'client', 'index.html'));
   });
 
   // Servir archivos estáticos desde el directorio "public"
@@ -59,52 +93,47 @@ app.whenReady().then(() => {
 
   // Buscar un puerto disponible entre 3000 y 4000
   findAvailablePort(3000, 4000, (err, port) => {
-      if (err) {
-          console.error('Error finding available port:', err);
-          return;
-      }
+    if (err) {
+      console.error('Error finding available port:', err);
+      return;
+    }
 
-      // Configurar directorio de caché personalizado para Electron
-      app.commandLine.appendSwitch('disk-cache-dir', path.join(app.getPath('userData'), 'cache'));
+    // Configurar directorio de caché personalizado para Electron
+    app.commandLine.appendSwitch('disk-cache-dir', path.join(app.getPath('userData'), 'cache'));
 
-      // Iniciar el servidor en el puerto disponible
-      const expressServer = server.listen(port, '0.0.0.0', () => {
-          console.log('Server running on http://' + getLocalIpAddress() + ':' + port);
+    // Iniciar el servidor en el puerto disponible
+    const expressServer = server.listen(port, '0.0.0.0', () => {
+      console.log('Server running on http://' + getLocalIpAddress() + ':' + port);
+    });
+
+    const wss = new WebSocket.Server({ server: expressServer });
+
+    wss.on('connection', function connection(ws) {
+      getAllMessages(messages => {
+        messages.forEach(message => {
+          ws.send(message); // Enviar el texto del mensaje en lugar del objeto completo
+        });
       });
 
-      const wss = new WebSocket.Server({ server: expressServer });
+      // Manejar mensajes entrantes desde el cliente
+      ws.on('message', function incoming(data) {
+        const parsedData = JSON.parse(data.toString())
+        const message = parsedData.message;
+        wss.clients.forEach(function each(client) {
+          if (client !== ws && client.readyState === WebSocket.OPEN) {
+            client.send(message);
+          }
+        });
 
-      const messages = []; // Almacena temporalmente los mensajes enviados
-
-      wss.on('connection', function connection(ws) {
-          // Enviar todos los mensajes almacenados temporalmente al cliente recién conectado
-          messages.forEach(function (message) {
-              ws.send(message);
-          });
-
-          ws.on('message', function incoming(message) {
-              const parsedMessage = message.toString();
-              wss.clients.forEach(function each(client) {
-                  if (client !== ws && client.readyState === WebSocket.OPEN) {
-                      client.send(parsedMessage);
-                  }
-              });
-
-              // Almacenar temporalmente el mensaje enviado
-              messages.push(parsedMessage);
-          });
-
-          // Limpiar los mensajes almacenados temporalmente después de enviarlos al cliente
-          ws.on('close', function () {
-              messages.length = 0; // Vaciar el array de mensajes
-          });
+        saveMessage(message);
       });
+    });
 
-      createWindow(port);
+    createWindow(port);
 
-      app.on('activate', function () {
-          if (BrowserWindow.getAllWindows().length === 0) createWindow(port);
-      });
+    app.on('activate', function () {
+      if (BrowserWindow.getAllWindows().length === 0) createWindow(port);
+    });
   });
 });
 

@@ -39,7 +39,7 @@
             const messageNode = document.createElement('p');
             messageNode.innerHTML = '<span style="color: blue;">' + message + '</span>';
             messagesDiv.appendChild(messageNode);
-            socket.send(message);
+            socket.send(JSON.stringify({message}));
             saveMessage(messageNode.outerHTML);
             messageInput.value = '';
         }

@@ -98,3 +98,318 @@ Mientras hacia todo el proceso, tuve problemas al momento de usar una versión, 
 ```bash
 fnm env --use-on-cd | Out-String | Invoke-Expression
 ```
+
+## Primero pasos
+
+Con NodeJS puede ejecutar la linea de comando [REPL](https://nodejs.org/en/learn/command-line/how-to-use-the-nodejs-repl) (*Read Evaluate Print Loop*) para iniciar el entorno de desarrollo en la terminal:
+
+```bash
+node
+```
+
+Esto permitirá que pueda ejecutar código de node similar a la consola del navegador, por ejemplo un **Hola mundo**
+
+```bash
+const a = 'Hola mundo'
+```
+
+```bash
+console.log(a)
+```
+
+Puedes ejecutar instrucciones matemáticas:
+
+```bash
+2 + 2
+```
+
+En lugar de usar REPL, puedes ejecutar un archivo js. En la carpeta `./exercices/00.first-time/` se encuentra un index.js que contiene lo siguiente:
+
+### Impresiones
+
+```js
+//🔹 El console log, info y error se muestran igual en la consola
+console.log('Hello world1!')
+console.info('Hello world2!')
+console.error('Hello world3!')
+```
+
+### Objetos globales
+
+```js
+console.log(window) // ❌ En Node, no existe el objeto global `window`
+console.log(typeof window) // undefined
+
+//🔹 Objeto global para node
+console.log(global)
+
+//🔹 Objeto global que apunta a `global` y `window` (recomendado)
+console.log(globalThis)
+
+window.console.log('Desde window') // ⚠️ En Node no funcionaría pero en el navegador sí
+global.console.log('Desde global') // ⚠️ En Node funciona pero en el navegador no
+globalThis.console.log('Desde globalThis') // ✔️ Funcionaría para casos (⭐ Recomendado)
+```
+
+## Patrón de diseño módulo
+
+### CommonJS
+
+- **Exportar una función para usarla en otros archivos**
+
+    ```js
+    // Ejemplo 1
+    function sum(a, b) { return a + b }
+
+    //🔹 Exporta la función por defecto y pueden renombrarlo
+    module.exports = sum
+    ```
+
+    ```js
+    // Ejemplo 2
+    function sum(a, b) { return a + b }
+
+    //🔹 Para obligar a que usen el nombre de la función
+    module.exports = { sum }
+    ```
+
+- **Importar la función desde otro archivo**
+
+    ```js
+    // Ejemplo 1
+    const mySum = require('./path/sumFile')
+    console.log(mySum(2,3)) // 5
+    ```
+
+    ```js
+    // Ejemplo 2
+    const { sum } = require('./path/sumFile')
+    console.log(sum(7,3)) // 10
+    ```
+
+### ES Modules (⭐)
+
+- **Exportar una función para usarla en otros archivos**
+
+    ```js
+    // Ejemplo 1
+    function sum(a, b) { return a + b }
+
+    //🔹 Exporta la función por defecto y pueden renombrarlo
+    export default sum
+    ```
+
+    ```js
+    // Ejemplo 2
+    function sum(a, b) { return a + b }
+
+    //🔹 Para obligar a que usen el nombre de la función
+    export { sum }
+    ```
+
+- **Importar la función desde otro archivo**
+
+    ```js
+    // Ejemplo 1
+    import mySum from './path/file'
+    console.log(mySum(2,3)) // 5
+    ```
+
+    ```js
+    // Ejemplo 2
+    import { sum } from './path/file'
+    console.log(sum(7,3)) // 10
+    ```
+
+Para ejecutar el archivo, abre la terminal en la ubicación del script y ejecuta:
+
+```bash
+node index.js
+```
+
+### Extensiones
+
+Node permite ejecutar script de JavaScript en diferentes extensiones:
+
+|.js|.cjs|.mjs|
+|-|-|-|
+|Por defecto usa el patrón de diseño CommonJS|Forza a usar el patrón de diseño CommonJS|Forza a usar el patrón de diseño ES Modules|
+
+## Módulos nativos de NodeJS
+
+Al momento de importar un módulo de Node es posible hacerlo de la siguiente forma:
+
+```js
+const os = require('os') // ⚠️
+const os = require('node:os') // ✅
+```
+
+>[!WARNING]
+Pero a partir de la versión 16 de Node, ya no es recomendable importar los módulos directamente del módulo nativo. Lo recomendable es usar el prefijo de node.
+
+### Operating System
+
+```js
+const os = require('node:os') // (⭐)
+
+console.log('Información del sistema operativo');
+console.log('---');
+
+console.log('Sistema Operativos:',os.platform());
+console.log('Versión:',os.release());
+console.log('Arquitectura:',os.arch());
+console.log('CPUs:',os.cpus());
+console.log('Memoria libre:',os.freemem() / 1024 / 1024,'MB');
+console.log('Memoria total:',os.totalmem() / 1024 / 1024,'MB');
+console.log('Tiempo encendido:',os.uptime()/60/60,'horas');
+```
+
+Este mismo ejemplo en ES Module quedaría de la siguiente manera:
+
+```js
+import { platform, release, arch, cpus, freemem, totalmem, uptime } from 'node:os';
+
+console.log('Información del sistema operativo');
+console.log('---');
+
+console.log('Sistema Operativos:',platform());
+console.log('Versión:',release());
+console.log('Arquitectura:',arch());
+console.log('CPUs:',cpus());
+console.log('Memoria libre:',freemem() / 1024 / 1024,'MB');
+console.log('Memoria total:',totalmem() / 1024 / 1024,'MB');
+console.log('Tiempo encendido:',uptime()/60/60,'horas');
+```
+
+### File System
+
+1. Ver estadísticas de un archivo:
+
+    ```js
+    const fs = require('node:fs')
+
+    const stats = fs.statSync('./archivo.txt')
+
+    console.log(
+      // Si es un fichero
+      stats.isFile(), // true
+
+      // Si es un directorio
+      stats.isDirectory(), // false
+
+      // Si es un enlace simbólico
+      stats.isSymbolicLink(), // false
+
+      // Tamaño en byter
+      stats.size // 12
+
+    )
+    ```
+
+2. Leer el contenido de un archivo (utf-8, sync, callbacks, promises):
+
+    1. UTF-8:
+
+        ```js
+        const fs = require('node:fs')
+
+        const text1 = fs.readFileSync('./archivo.txt')
+        console.log(text1); // <Buffer 48 65 6c 6c 6f 20 57 6f 72 6c 64 21>
+
+        const text2 = fs.readFileSync('./archivo.txt', 'utf-8')
+        console.log(text2); // Hello World!
+        ```
+
+    2. Leer archivos de forma Síncrona:
+
+        ```js
+        console.log('⌛ Leyendo el Primer Archivo...');
+        const text3 = fs.readFileSync('./archivo.txt', 'utf-8')
+        console.log('✅ Primer archivo leído (sincrónicamente) =>', text3); // Hello World!
+
+        console.log('⌛ Leyendo el Segundo Archivo...');
+        const text4 = fs.readFileSync('./archivo.txt', 'utf-8')
+        console.log('✅ Segundo archivo leído (sincrónicamente) =>', text4); // Hello World!
+
+        ```
+
+    3. Leer archivos de forma Asíncrona con Callback:
+
+        ```js
+        console.log('⌛ Leyendo el Primer Archivo:');
+        fs.readFile('./archivo.txt', 'utf-8', (err, text) => {
+          console.log('✅ Primer archivo leído (asincrónicamente) =>', text); // Hello World!
+        })
+
+        console.log('♻️ Haciendo cosas mientras lee el archivo...');
+
+        console.log('⌛ Leyendo el Segundo Archivo...');
+        fs.readFile('./archivo2.txt', 'utf-8', (err, text) => {
+          console.log('✅ Segundo archivo leído (asincrónicamente) =>', text); // Hello World!
+        })
+
+        console.log('♻️ Sigo haciendo otras cosas mientras lee el archivo...');
+        console.log('🤓 Aquí finalizaría de leer el código.');
+        ```
+
+    4. Leer archivos de forma Asíncrona con promesas:
+
+        ```js
+        const fs = require('node:fs/promises')
+
+        console.log('⌛ Leyendo el Primer Archivo:');
+        fs.readFile('./archivo.txt', 'utf-8')
+          .then(text => {
+            console.log('✅ Primer archivo leído (asincrónicamente) =>', text); // Hello World!
+          })
+
+        console.log('♻️ Haciendo cosas mientras lee el archivo...');
+
+        console.log('⌛ Leyendo el Segundo Archivo...');
+        fs.readFile('./archivo2.txt', 'utf-8')
+          .then(text => {
+            console.log('✅ Segundo archivo leído (asincrónicamente) =>', text); // Hello World!
+          })
+
+          
+        console.log('♻️ Sigo haciendo otras cosas mientras lee el archivo...');
+        console.log('🤓 Aquí finalizaría de leer el código.');
+        ```
+
+    5. Leer archivos de forma Asíncrona con Async/Await:
+
+        ```js
+        const { readFile } = require('node:fs/promises')
+
+        // IIFE - Inmediatly Invoked Function Expression
+        ;(
+          async () => {
+            console.log('⌛ Leyendo el Primer Archivo:');
+            const text1 = await readFile('./archivo.txt', 'utf-8');
+            console.log('✅ Primer archivo leído (asincrónicamente) =>', text1); // Hello World!
+
+            console.log('♻️ Haciendo cosas mientras lee el archivo...');
+
+            console.log('⌛ Leyendo el Segundo Archivo...');
+            const text2 = await readFile('./archivo2.txt', 'utf-8');
+            console.log('✅ Segundo archivo leído (asincrónicamente) =>', text2); // Hello World!
+              
+            console.log('♻️ Sigo haciendo otras cosas mientras lee el archivo...');
+            console.log('🤓 Aquí finalizaría de leer el código.');
+          }
+        )()
+        ```
+
+    6. Leer archivos de forma Asíncrona paralelamente:
+
+        ```js
+        const { readFile } = require('node:fs/promises')
+
+        Promise.all([
+          readFile('./archivo.txt', 'utf-8'),
+          readFile('./archivo2.txt', 'utf-8')
+        ]).then(([text1, text2]) => {
+          console.log('✅ Primer archivo leído (asincrónicamente) =>', text1);
+          console.log('✅ Segundo archivo leído (asincrónicamente) =>', text2);
+        })
+        ```

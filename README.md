@@ -413,3 +413,43 @@ console.log('Tiempo encendido:',uptime()/60/60,'horas');
           console.log('✅ Segundo archivo leído (asincrónicamente) =>', text2);
         })
         ```
+
+### Path
+
+En Nodejs está prohibido unir rutas de forma convencional (`ruta/carpeta/archivo`), esto es debido a que no todos los sistemas operativos usan el mismo caracter para separar cada directorio. Por ejemplo en Windows si ejecutamos el siguiente script de node:
+
+```js
+const path = require('node:path')
+
+// Obtener el separador de directorios del SO
+console.log(path.sep); // \
+
+```
+
+El separador es `\`, pero por ejemplo en MacOS es `/` y el otros sistemas operativos podría ser completamente diferente.
+
+Para unir directorios, se usa `join`:
+
+```js
+const path = require('node:path')
+
+const filePath = path.join('ruta','carpeta','archivo')
+console.log(filePath) // ruta\carpeta\archivo
+```
+
+Para obtener el nombre de un fichero en una ruta, se usa `basename`:
+
+```js
+const readmeFile = path.basename('ruta/carpeta/readme.txt')
+console.log(readmeFile) // readme.txt
+
+const readmeFileName = path.basename('ruta/carpeta/readme.txt', '.txt')
+console.log(readmeFileName) // readme
+```
+
+Para obtener la extensión de un fichero, se `extname`:
+
+```js
+const imageExt = path.extname('ruta/carpeta/image.jpg')
+console.log(imageExt) // .jpg
+```

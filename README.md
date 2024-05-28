@@ -453,3 +453,261 @@ Para obtener la extensión de un fichero, se `extname`:
 const imageExt = path.extname('ruta/carpeta/image.jpg')
 console.log(imageExt) // .jpg
 ```
+
+## NPM
+
+Node Package Manager (NPM) es el administrador de paquetes que Node.js instala por defecto y cuenta con el registro de paquetes más grande del mundo. NPM se compone de dos partes principales:
+
+- **Registro de paquetes NPM:** Es el repositorio donde se alojan todas las dependencias de los proyectos de Node.
+- **Linea de comandos NPM** Es la herramienta que se utiliza para instalar, actualizar y gestionar estas dependencias desde la terminal.
+
+### Inicializar proyecto
+
+Para generar o inicializar un proyecto usando la línea de comandos npm, abre una terminal y ejecuta:
+
+```bash
+npm init
+```
+
+Esta realizará una serie de preguntas que permitirá registrar algunos datos básicos del proyecto. Es posible evitar estos pasos añadiendole la bandera `-y` para que se establezcan valores predeterminados:
+
+```bash
+npm init -y
+```
+
+Esto generará el fichero `package.json` que se luce de la siguiente manera:
+
+```json
+{
+  // Acerca del proyecto 
+  "name": "project-name",
+  "version": "1.0.0",
+  "description": "",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+
+  // Punto de entrada principal de la app
+  "main": "index.js",
+
+  // Scripts personalizados que permiten ejecutar 
+  // diferentes operaciones con 'npm run <script>'
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+}
+```
+
+### Instalación de paquetes
+
+Para instalar un nuevo paquete, por ejemplo [picocolors](https://www.npmjs.com/package/picocolors) se realiza de la siguiente manera:
+
+```bash
+npm install picocolors
+```
+
+Este comando instalará el paquete y lo registrará automáticamente en las dependencias del proyecto dentro del archivo `package.json`. Es importante destacar que los paquetes se dividen en dos grupos distintos:
+
+- **Paquetes de Producción:** Estos son los paquetes necesarios para que tu aplicación funcione correctamente en un entorno de producción.
+- **Paquetes de Desarrollo:** Estos son los paquetes necesarios solo durante el desarrollo de tu aplicación, como herramientas de prueba, compiladores o linters.
+
+Al instalar un paquete sin especificar explícitamente su uso, npm lo colocará automáticamente en el grupo de producción. Sin embargo, si deseas instalar un paquete para su uso exclusivo durante el desarrollo, puedes agregar la bandera `--save-dev` al comando `npm install`:
+
+```bash
+npm install picocolors --save-dev
+```
+
+O también usar `--development` o incluso su respectiva abreviación `-D` *(Importante la D mayuscula)*:
+
+```bash
+npm install picocolors -D
+```
+
+### Versiones
+
+Además de registrar el nombre de la dependencia en el `package.json`, también se registrará la respectiva versión. Luciría de la siguiente manera:
+
+```json
+{
+  "name": "xd",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+
+  // Dependecias de producción
+  "dependencies": {
+    "picocolors": "^1.0.1",
+    
+    // otras dependencias de ejemplo
+    "ejemplo1": "^16.4.6",
+    "ejemplo2": "^21.3.5",
+    "ejemplo3": "^5.30.1",
+  },
+
+  // Dependecias de desarrollo
+  "dependencies": {
+    "picocolors": "^1.0.1",
+    
+    // otras dependencias de ejemplo
+    "ejemplo1": "^16.4.6",
+    "ejemplo2": "^21.3.5",
+    "ejemplo3": "^5.30.1",
+  }
+}
+```
+
+Cuando instalas una dependencia, se añadirá un Caret (^) al número de la versión. Esto indica a NPM que instale cualquier nueva versión que incluya mejoras *(Features)* o correcciones de errores *(Fix bugs)*, pero sin incluir cambios que rompan la compatibilidad.
+
+![Version management](version-management.png)
+
+- **Breaking changes *(Cambios importantes)*:** También conocida como MAJOR *(Mayor)*. Estos cambios rompen la compatibilidad con versiones anteriores. El caret no permite la actualización automática a estas versiones. Ejemplo:
+  - Refactorización que cambia las APIs públicas.
+  - Eliminación de funcionalidades obsoletas.
+  - Cambios en el comportamiento que pueden romper la compatibilidad con versiones anteriores.
+- **Features *(Nuevas funcionalidades)*:** También conocida como MINOR *(Menor)*. El caret permite la actualización a versiones que añaden nuevas funcionalidades sin romper la compatibilidad. Ejemplo:
+  - Adición de nuevas APIs o funcionalidades.
+  - Mejoras en la implementación de las funcionalidades existentes.
+  - Nuevas opciones o configuraciones que no afectan el comportamiento actual.
+- **Fix bugs *(Corrección de errores)*:** También conocida como PATCH *(Parche)*. El caret también permite la actualización a versiones que incluyen correcciones de errores. Ejemplo:
+  - Corrección de errores y fallos.
+  - Mejoras de rendimiento sin cambios en la API.
+  - Ajustes menores que no afectan la compatibilidad ni añaden nuevas funcionalidades.
+
+> [!WARNING] Advertencia
+> Elimina el Caret (^) de las dependencias porque podría romper la aplicación si las nuevas actualizaciones no son compatibles.
+
+Es recomendable que al actualizar una dependencia, se ponga a prueba el funcionamiento de toda la app.
+
+> [!TIP] Pro-tip
+> Usa la bandera `-E` al momento de instalar una dependencia para que use siempre la versión exacta, es decir, que no añada el Caret.
+>
+> ```bash
+> npm install picocolors -E
+> ```
+
+### Instalación de dependecias
+
+Al tener las dependencias registradas en el `package.json`, se debe ejecutar el siguiente comando para instalarlas:
+
+```bash
+npm install
+```
+
+Además de instalar las dependencias, es aquí cuando se actualizan las versiones en caso de que tengan el Caret (^)
+
+Una vez instalada todas las dependencias, estas se alojarán en una carpeta llamada `node_modules`. Se instalará la dependencia instalada, y las dependencias que requiere la dependencia instalada, y así recursivamente.
+
+### Desinstalación de dependencias
+
+Si por alguna razón, se requiere borrar una dependencia y además los scripts descargados de una dependencia especifica:
+
+```bash
+npm unistall picocolors
+```
+
+### Importar dependencia
+
+Depdendiendo del patrón de diseño módulo, se importa de una u otra forma:
+
+```js
+// Tipo CommonJS
+const picocolors1 = require('picocolors');
+
+// Tipo ES Modules
+import picocolors2 from 'picocolors';
+
+// Usar la dependencia
+console.log(picocolors2.red('❌ Esto es un mensaje de error de color rojo.'));
+```
+
+## Crear un servidor con Node
+
+Para crear un servidor utilizando Node de forma básica, se utiliza el módulo `http` de la siguiente manera:
+
+```js
+const http = require('node:http')
+
+const port = process.env.PORT ?? 3000
+
+// Crear servidor http
+const server = http.createServer((request, response)=>{
+  console.log('Request:',request) // <-- Imprime por la terminal
+  response.end('Hello World!') // <-- Imprime en el cliente
+})
+
+// Escuchar en el puerto 3000 o en el que establezca
+server.listen(port, () => {
+  console.log(`Server running on port http://localhost:${server.address().port}`)
+})
+```
+
+En este ejemplo, el servidor responde con "Hello World!" a todas las solicitudes que recibe.
+
+> [!TIP] Pro-tip
+> Si se establece el puerto en 0, Node.js seleccionará automáticamente un puerto disponible al azar, **pero sólo es recomendable en modo desarrollo.**
+
+Para establecer un puerto como variable de entorno del sistema, asignela antes de ejecutar el script de la siguiente manera:
+
+```bash
+PORT=1234 node index.js
+```
+
+### Obtener un puerto abierto
+
+Primero se crea la función para usar el puerto deseado o buscar un puerto disponible usando el módulo `net`:
+
+```js
+const net = require('node:net')
+
+function findAvailablePort (desiredPort) {
+  return new Promise((resolve, reject) => {
+    const server = net.createServer()
+
+    // Verificar si es posible usar el puerto
+    server.listen(desiredPort, () => {
+      const { port } = server.address()
+      server.close(() => {
+        resolve(port)
+      })
+    })
+
+    // En caso de que ya esté ocupado el puerto
+    // o haya un error cualquiera 
+    server.on('error', (err) => {
+      if (err.code === 'EADDRINUSE') {
+        findAvailablePort(0).then(port => resolve(port))
+      } else {
+        reject(err)
+      }
+    })
+  })
+}
+
+module.exports = { findAvailablePort }
+```
+
+Ahora se usa esta función al crear el servidor de la siguiente manera:
+
+```js
+const http = require('node:http')
+const { findAvailablePort } = require('./find-available-port.js')
+
+const port = process.env.PORT ?? 3000
+
+const server = http.createServer((req, res)=>{
+  res.end('Hello World!')
+})
+
+findAvailablePort(port)
+  .then(port => {
+    server.listen(port, () => {
+      console.log(`Server running on port http://localhost:${port}`)
+    })
+  })
+```
